@@ -1,0 +1,441 @@
+import { useState } from "react";
+
+const CROQUIS_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/1024px-No_image_available.svg.png";
+
+const SECTORES = [
+  {
+    id: "accesos",
+    emoji: "🚪",
+    color: "#1A6FE8",
+    bg: "#EBF2FF",
+    titulo: "Accesos al Edificio",
+    checklist: [
+      "¿Cuántos accesos hay? (cantidad: ___)",
+      "Acceso principal señalizado",
+      "Sin escalón / desnivel en entrada",
+      "Ancho suficiente para silla de ruedas (≥90cm)",
+      "Puerta de fácil apertura",
+      "Timbre o intercomunicador accesible",
+    ],
+  },
+  {
+    id: "rampas",
+    emoji: "♿",
+    color: "#13B385",
+    bg: "#E6F9F4",
+    titulo: "Rampas y Accesibilidad",
+    checklist: [
+      "Ubicación de rampa/s: ___",
+      "Pendiente adecuada (≤8%)",
+      "Ancho mínimo ≥90cm",
+      "Pasamanos presente",
+      "Superficie antideslizante",
+      "Señalización visible",
+    ],
+  },
+  {
+    id: "escaleras",
+    emoji: "🪜",
+    color: "#E87013",
+    bg: "#FFF3E8",
+    titulo: "Escaleras",
+    checklist: [
+      "Cantidad de escaleras: ___",
+      "Pasamanos en ambos lados",
+      "Primer y último escalón señalizado",
+      "Iluminación adecuada",
+      "Superficie antideslizante",
+      "Señalética de piso",
+    ],
+  },
+  {
+    id: "banios",
+    emoji: "🚻",
+    color: "#7A4FE5",
+    bg: "#F2EEFF",
+    titulo: "Baños",
+    checklist: [
+      "Cantidad y ubicación: ___",
+      "Baño accesible disponible",
+      "Señalética exterior clara",
+      "Puerta con ancho ≥80cm",
+      "Barras de apoyo interiores",
+      "Estado general adecuado",
+    ],
+  },
+  {
+    id: "aulas",
+    emoji: "🏫",
+    color: "#0BA8BB",
+    bg: "#E6F8FA",
+    titulo: "Aulas y Salones",
+    checklist: [
+      "Número / identificación visible",
+      "Señalética en puerta legible",
+      "Acceso sin obstáculos",
+      "Iluminación suficiente",
+      "Visibilidad desde el pasillo",
+      "Capacidad aprox: ___ personas",
+    ],
+  },
+  {
+    id: "barreras",
+    emoji: "⚠️",
+    color: "#D93535",
+    bg: "#FEECEC",
+    titulo: "Barreras e Incidencias",
+    checklist: [
+      "Obstáculos en pasillos",
+      "Señalética dañada o ausente",
+      "Puertas difíciles de abrir",
+      "Pisos irregulares o resbaladizos",
+      "Falta de iluminación",
+      "Otros obstáculos (describir abajo)",
+    ],
+  },
+];
+
+const FOTOS = [
+  { label: "Acceso principal",     color: "#1A6FE8" },
+  { label: "Rampa accesible",      color: "#13B385" },
+  { label: "Escalera",             color: "#E87013" },
+  { label: "Baño accesible",       color: "#7A4FE5" },
+  { label: "Aula / Salón",         color: "#0BA8BB" },
+  { label: "Barrera detectada",    color: "#D93535" },
+  { label: "Señalética",           color: "#D4A10A" },
+  { label: "Patio / Circulación",  color: "#5A6470" },
+];
+
+export default function Relevamiento() {
+  const [checks, setChecks] = useState({});
+  const [notas, setNotas] = useState({});
+  const [general, setGeneral] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [responsable, setResponsable] = useState("");
+  const [activeTab, setActiveTab] = useState("sectores");
+
+  const toggle = (sectorId, idx) => {
+    const key = `${sectorId}-${idx}`;
+    setChecks(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const setNota = (id, val) => setNotas(prev => ({ ...prev, [id]: val }));
+
+  const completedCount = (sectorId, len) =>
+    Array.from({ length: len }, (_, i) => checks[`${sectorId}-${i}`]).filter(Boolean).length;
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: "#F4F6F9", minHeight: "100vh" }}>
+
+      {/* HEADER */}
+      <div style={{
+        background: "linear-gradient(135deg, #1A3A6E 0%, #1A6FE8 100%)",
+        padding: "32px 24px 24px",
+        color: "#fff",
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, opacity: 0.7, marginBottom: 8 }}>
+          SPRINT 1 · UX/UI · SEMANA 2
+        </div>
+        <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.2, marginBottom: 6 }}>
+          Relevamiento de Campo
+        </div>
+        <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 20 }}>
+          Centro de Formación Profesional N.º 7
+        </div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <input
+            placeholder="Fecha de visita"
+            value={fecha}
+            onChange={e => setFecha(e.target.value)}
+            style={{
+              background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: 8, padding: "8px 12px", color: "#fff", fontSize: 13,
+              outline: "none", flex: 1, minWidth: 140,
+            }}
+          />
+          <input
+            placeholder="Responsable"
+            value={responsable}
+            onChange={e => setResponsable(e.target.value)}
+            style={{
+              background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: 8, padding: "8px 12px", color: "#fff", fontSize: 13,
+              outline: "none", flex: 2, minWidth: 180,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #E4E7EC", display: "flex", overflowX: "auto" }}>
+        {["sectores", "croquis", "fotos", "notas"].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: "14px 20px", border: "none", background: "none",
+              fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+              color: activeTab === tab ? "#1A6FE8" : "#6B7280",
+              borderBottom: activeTab === tab ? "2px solid #1A6FE8" : "2px solid transparent",
+              transition: "all 0.2s",
+            }}
+          >
+            {{ sectores: "📋 Sectores", croquis: "🗺 Croquis", fotos: "📷 Fotos", notas: "📝 Notas" }[tab]}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "20px 16px", maxWidth: 900, margin: "0 auto" }}>
+
+        {/* ── SECTORES TAB ── */}
+        {activeTab === "sectores" && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+            {SECTORES.map(s => {
+              const done = completedCount(s.id, s.checklist.length);
+              const pct = Math.round((done / s.checklist.length) * 100);
+              return (
+                <div key={s.id} style={{
+                  background: "#fff", borderRadius: 14, overflow: "hidden",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                  borderTop: `4px solid ${s.color}`,
+                }}>
+                  <div style={{ padding: "16px 16px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 22 }}>{s.emoji}</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>{s.titulo}</span>
+                      </div>
+                      <div style={{
+                        background: s.bg, color: s.color,
+                        fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20,
+                      }}>
+                        {done}/{s.checklist.length}
+                      </div>
+                    </div>
+
+                    {/* progress bar */}
+                    <div style={{ height: 4, background: "#F0F2F5", borderRadius: 4, marginBottom: 14 }}>
+                      <div style={{ height: 4, background: s.color, borderRadius: 4, width: `${pct}%`, transition: "width 0.3s" }} />
+                    </div>
+
+                    {s.checklist.map((item, idx) => {
+                      const key = `${s.id}-${idx}`;
+                      const checked = !!checks[key];
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => toggle(s.id, idx)}
+                          style={{
+                            display: "flex", alignItems: "flex-start", gap: 10,
+                            padding: "8px 0", borderBottom: "1px solid #F4F6F9",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <div style={{
+                            width: 20, height: 20, borderRadius: 5, flexShrink: 0, marginTop: 1,
+                            border: checked ? `2px solid ${s.color}` : "2px solid #D1D5DB",
+                            background: checked ? s.color : "#fff",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            transition: "all 0.15s",
+                          }}>
+                            {checked && <span style={{ color: "#fff", fontSize: 11, lineHeight: 1 }}>✓</span>}
+                          </div>
+                          <span style={{ fontSize: 12, color: checked ? "#9CA3AF" : "#374151", textDecoration: checked ? "line-through" : "none", lineHeight: 1.4 }}>
+                            {item}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ padding: "10px 16px 14px" }}>
+                    <textarea
+                      placeholder="Observaciones de este sector..."
+                      value={notas[s.id] || ""}
+                      onChange={e => setNota(s.id, e.target.value)}
+                      rows={2}
+                      style={{
+                        width: "100%", border: "1px solid #E5E7EB", borderRadius: 8,
+                        padding: "8px 10px", fontSize: 12, color: "#374151",
+                        resize: "vertical", outline: "none", boxSizing: "border-box",
+                        fontFamily: "inherit",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── CROQUIS TAB ── */}
+        {activeTab === "croquis" && (
+          <div>
+            <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)", marginBottom: 16 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4 }}>Croquis del Predio</div>
+              <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 16 }}>
+                Usá este plano de referencia para ubicar cada sector durante la visita.
+              </div>
+
+              {/* Sketch area */}
+              <div style={{
+                background: "#F4F6F9", borderRadius: 10, padding: 16,
+                border: "2px dashed #D1D5DB", textAlign: "center",
+                marginBottom: 16, minHeight: 320,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🗺️</div>
+                <div style={{ fontSize: 13, color: "#6B7280", maxWidth: 280 }}>
+                  Pegá aquí la imagen del croquis (Ctrl+V o arrastrá el archivo al abrir en Figma)
+                </div>
+                <div style={{ marginTop: 12, fontSize: 11, color: "#9CA3AF" }}>
+                  Referencia: Calle Ramsay · Calle Interna · Patio Interno · Edificio ANADIS.
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[
+                  { color: "#1A6FE8", label: "Acceso principal" },
+                  { color: "#13B385", label: "Rampa accesible" },
+                  { color: "#E87013", label: "Escalera" },
+                  { color: "#7A4FE5", label: "Baño" },
+                  { color: "#0BA8BB", label: "Aula / Salón" },
+                  { color: "#D93535", label: "Barrera / Obstáculo" },
+                  { color: "#D4A10A", label: "Punto de interés" },
+                  { color: "#5A6470", label: "Patio / Circulación" },
+                ].map((l, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 14, height: 14, borderRadius: "50%", background: l.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: "#374151" }}>{l.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sector notes on map */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#111", marginBottom: 12 }}>Referencia de ubicación por sector</div>
+              {SECTORES.map(s => (
+                <div key={s.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>
+                    {s.emoji}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: s.color }}>{s.titulo}</div>
+                    <input
+                      placeholder="Ubicación en el plano (ej: planta baja, ala derecha)..."
+                      style={{
+                        width: "100%", border: "none", borderBottom: "1px solid #E5E7EB",
+                        padding: "4px 0", fontSize: 12, color: "#374151", outline: "none",
+                        background: "transparent", boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── FOTOS TAB ── */}
+        {activeTab === "fotos" && (
+          <div>
+            <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 16 }}>
+              Registrá al menos una foto por cada sector. Podés agregar la observación bajo cada imagen.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
+              {FOTOS.map((f, i) => (
+                <div key={i} style={{
+                  background: "#fff", borderRadius: 12, overflow: "hidden",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
+                  borderTop: `3px solid ${f.color}`,
+                }}>
+                  <div style={{
+                    height: 130, background: "#F4F6F9",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <div style={{ fontSize: 30, marginBottom: 6 }}>📷</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>Agregar foto</div>
+                  </div>
+                  <div style={{ padding: "10px 12px" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#111", marginBottom: 6 }}>{f.label}</div>
+                    <textarea
+                      placeholder="Observación..."
+                      rows={2}
+                      style={{
+                        width: "100%", border: "1px solid #E5E7EB", borderRadius: 6,
+                        padding: "6px 8px", fontSize: 11, resize: "none",
+                        outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── NOTAS TAB ── */}
+        {activeTab === "notas" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* resumen */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4 }}>Resumen del progreso</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10, marginTop: 12 }}>
+                {SECTORES.map(s => {
+                  const done = completedCount(s.id, s.checklist.length);
+                  const pct = Math.round((done / s.checklist.length) * 100);
+                  return (
+                    <div key={s.id} style={{ background: s.bg, borderRadius: 10, padding: "12px 14px" }}>
+                      <div style={{ fontSize: 18, marginBottom: 4 }}>{s.emoji}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: s.color }}>{s.titulo}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#111", marginTop: 4 }}>{pct}%</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* notas generales */}
+            <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 12 }}>Notas generales de la visita</div>
+              <textarea
+                placeholder="Condiciones del día, personas contactadas, observaciones generales del espacio, impresión general de accesibilidad..."
+                value={general}
+                onChange={e => setGeneral(e.target.value)}
+                rows={8}
+                style={{
+                  width: "100%", border: "1px solid #E5E7EB", borderRadius: 10,
+                  padding: "12px 14px", fontSize: 13, resize: "vertical",
+                  outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                  lineHeight: 1.6,
+                }}
+              />
+            </div>
+
+            {/* próximos pasos */}
+            <div style={{ background: "#EBF2FF", borderRadius: 14, padding: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#1A6FE8", marginBottom: 8 }}>📌 Próximos pasos después de la visita</div>
+              {[
+                "Subir fotos al archivo de Figma por sector",
+                "Completar fichas descriptivas de cada espacio",
+                "Marcar barreras detectadas en el croquis digital",
+                "Compartir hallazgos con el equipo (Back-End, Data, QA)",
+                "Definir estructura de datos: espacios, coordenadas, accesibilidad",
+              ].map((paso, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#1A6FE8", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {i + 1}
+                  </div>
+                  <span style={{ fontSize: 13, color: "#1A3A6E", lineHeight: 1.5 }}>{paso}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
