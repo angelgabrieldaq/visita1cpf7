@@ -439,4 +439,3 @@ function Relevamiento() {
     </div>
   );
 }
-export default Relevamiento;
