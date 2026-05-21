@@ -106,7 +106,7 @@ const FOTOS = [
   { label: "Patio / Circulación",  color: "#5A6470" },
 ];
 
-export default function Relevamiento() {
+function Relevamiento() {
   const [checks, setChecks] = useState({});
   const [notas, setNotas] = useState({});
   const [general, setGeneral] = useState("");
