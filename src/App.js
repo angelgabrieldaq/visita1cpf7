@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-const CROQUIS_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/1024px-No_image_available.svg.png";
 
 const SECTORES = [
   {
