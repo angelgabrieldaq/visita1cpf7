@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-
 const SECTORES = [
   {
     id: "accesos",
@@ -95,14 +94,14 @@ const SECTORES = [
 ];
 
 const FOTOS = [
-  { label: "Acceso principal",     color: "#1A6FE8" },
-  { label: "Rampa accesible",      color: "#13B385" },
-  { label: "Escalera",             color: "#E87013" },
-  { label: "Baño accesible",       color: "#7A4FE5" },
-  { label: "Aula / Salón",         color: "#0BA8BB" },
-  { label: "Barrera detectada",    color: "#D93535" },
-  { label: "Señalética",           color: "#D4A10A" },
-  { label: "Patio / Circulación",  color: "#5A6470" },
+  { label: "Acceso principal",    color: "#1A6FE8" },
+  { label: "Rampa accesible",     color: "#13B385" },
+  { label: "Escalera",            color: "#E87013" },
+  { label: "Baño accesible",      color: "#7A4FE5" },
+  { label: "Aula / Salón",        color: "#0BA8BB" },
+  { label: "Barrera detectada",   color: "#D93535" },
+  { label: "Señalética",          color: "#D4A10A" },
+  { label: "Patio / Circulación", color: "#5A6470" },
 ];
 
 function Relevamiento() {
@@ -112,10 +111,9 @@ function Relevamiento() {
   const [fecha, setFecha] = useState("");
   const [responsable, setResponsable] = useState("");
   const [activeTab, setActiveTab] = useState("sectores");
+  const [fotosPreviews, setFotosPreviews] = useState({});
+  const [fotosNotas, setFotosNotas] = useState({});
 
-const [fotosPreviews, setFotosPreviews] = useState({});
-
-const toggle = (sectorId, idx) => {
   const toggle = (sectorId, idx) => {
     const key = `${sectorId}-${idx}`;
     setChecks(prev => ({ ...prev, [key]: !prev[key] }));
@@ -189,7 +187,7 @@ const toggle = (sectorId, idx) => {
 
       <div style={{ padding: "20px 16px", maxWidth: 900, margin: "0 auto" }}>
 
-        {/* ── SECTORES TAB ── */}
+        {/* SECTORES TAB */}
         {activeTab === "sectores" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
             {SECTORES.map(s => {
@@ -214,12 +212,9 @@ const toggle = (sectorId, idx) => {
                         {done}/{s.checklist.length}
                       </div>
                     </div>
-
-                    {/* progress bar */}
                     <div style={{ height: 4, background: "#F0F2F5", borderRadius: 4, marginBottom: 14 }}>
                       <div style={{ height: 4, background: s.color, borderRadius: 4, width: `${pct}%`, transition: "width 0.3s" }} />
                     </div>
-
                     {s.checklist.map((item, idx) => {
                       const key = `${s.id}-${idx}`;
                       const checked = !!checks[key];
@@ -249,7 +244,6 @@ const toggle = (sectorId, idx) => {
                       );
                     })}
                   </div>
-
                   <div style={{ padding: "10px 16px 14px" }}>
                     <textarea
                       placeholder="Observaciones de este sector..."
@@ -270,7 +264,7 @@ const toggle = (sectorId, idx) => {
           </div>
         )}
 
-        {/* ── CROQUIS TAB ── */}
+        {/* CROQUIS TAB */}
         {activeTab === "croquis" && (
           <div>
             <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)", marginBottom: 16 }}>
@@ -278,8 +272,6 @@ const toggle = (sectorId, idx) => {
               <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 16 }}>
                 Usá este plano de referencia para ubicar cada sector durante la visita.
               </div>
-
-              {/* Sketch area */}
               <div style={{
                 background: "#F4F6F9", borderRadius: 10, padding: 16,
                 border: "2px dashed #D1D5DB", textAlign: "center",
@@ -288,14 +280,12 @@ const toggle = (sectorId, idx) => {
               }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>🗺️</div>
                 <div style={{ fontSize: 13, color: "#6B7280", maxWidth: 280 }}>
-                  Pegá aquí la imagen del croquis (Ctrl+V o arrastrá el archivo al abrir en Figma)
+                  Pegá aquí la imagen del croquis
                 </div>
                 <div style={{ marginTop: 12, fontSize: 11, color: "#9CA3AF" }}>
                   Referencia: Calle Ramsay · Calle Interna · Patio Interno · Edificio ANADIS.
                 </div>
               </div>
-
-              {/* Legend */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {[
                   { color: "#1A6FE8", label: "Acceso principal" },
@@ -314,8 +304,6 @@ const toggle = (sectorId, idx) => {
                 ))}
               </div>
             </div>
-
-            {/* Sector notes on map */}
             <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#111", marginBottom: 12 }}>Referencia de ubicación por sector</div>
               {SECTORES.map(s => (
@@ -340,11 +328,11 @@ const toggle = (sectorId, idx) => {
           </div>
         )}
 
-        {/* ── FOTOS TAB ── */}
+        {/* FOTOS TAB */}
         {activeTab === "fotos" && (
           <div>
             <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 16 }}>
-              Registrá al menos una foto por cada sector. Podés agregar la observación bajo cada imagen.
+              Registrá al menos una foto por cada sector. Tocá el área de imagen para agregar una foto.
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
               {FOTOS.map((f, i) => (
@@ -354,16 +342,23 @@ const toggle = (sectorId, idx) => {
                   borderTop: `3px solid ${f.color}`,
                 }}>
                   <label style={{
-                    height: 130, background: "#F4F6F9",
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    height: 130,
+                    background: "#F4F6F9",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                     cursor: "pointer",
+                    overflow: "hidden",
                   }}>
                     {fotosPreviews[i]
-                      ? <img src={fotosPreviews[i]} style={{ height: 130, width: "100%", objectFit: "cover" }} />
-                      : <>
+                      ? <img src={fotosPreviews[i]} alt={f.label} style={{ height: 130, width: "100%", objectFit: "cover" }} />
+                      : (
+                        <>
                           <div style={{ fontSize: 30, marginBottom: 6 }}>📷</div>
                           <div style={{ fontSize: 11, color: "#9CA3AF" }}>Tocar para agregar foto</div>
                         </>
+                      )
                     }
                     <input
                       type="file"
@@ -384,6 +379,8 @@ const toggle = (sectorId, idx) => {
                     <textarea
                       placeholder="Observación..."
                       rows={2}
+                      value={fotosNotas[i] || ""}
+                      onChange={e => setFotosNotas(prev => ({ ...prev, [i]: e.target.value }))}
                       style={{
                         width: "100%", border: "1px solid #E5E7EB", borderRadius: 6,
                         padding: "6px 8px", fontSize: 11, resize: "none",
@@ -397,11 +394,9 @@ const toggle = (sectorId, idx) => {
           </div>
         )}
 
-        {/* ── NOTAS TAB ── */}
+        {/* NOTAS TAB */}
         {activeTab === "notas" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-            {/* resumen */}
             <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4 }}>Resumen del progreso</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10, marginTop: 12 }}>
@@ -418,12 +413,10 @@ const toggle = (sectorId, idx) => {
                 })}
               </div>
             </div>
-
-            {/* notas generales */}
             <div style={{ background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 12 }}>Notas generales de la visita</div>
               <textarea
-                placeholder="Condiciones del día, personas contactadas, observaciones generales del espacio, impresión general de accesibilidad..."
+                placeholder="Condiciones del día, personas contactadas, observaciones generales del espacio..."
                 value={general}
                 onChange={e => setGeneral(e.target.value)}
                 rows={8}
@@ -435,8 +428,6 @@ const toggle = (sectorId, idx) => {
                 }}
               />
             </div>
-
-            {/* próximos pasos */}
             <div style={{ background: "#EBF2FF", borderRadius: 14, padding: 20 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#1A6FE8", marginBottom: 8 }}>📌 Próximos pasos después de la visita</div>
               {[
@@ -460,4 +451,5 @@ const toggle = (sectorId, idx) => {
     </div>
   );
 }
+
 export default Relevamiento;
