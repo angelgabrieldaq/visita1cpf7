@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // ─── DATOS DEL RELEVAMIENTO ───────────────────────────────────────────────────
 
+// campos: array de { idx, label, placeholder } para ítems con input numérico/texto
+// severidad: true → este sector muestra selector de criticidad por ítem
 const SECTORES = [
   {
     id: "accesos",
@@ -11,7 +13,7 @@ const SECTORES = [
     titulo: "Accesos al Edificio",
     desc: "Entradas principales y secundarias del predio",
     checklist: [
-      "Cantidad de accesos (anotar: ___)",
+      "Cantidad de accesos",
       "Acceso principal con señalización visible",
       "Sin escalón ni desnivel en la entrada",
       "Ancho de puerta ≥ 90 cm (silla de ruedas)",
@@ -20,6 +22,7 @@ const SECTORES = [
       "Piso antideslizante en umbral",
       "Buena iluminación en acceso",
     ],
+    campos: [{ idx: 0, label: "Cantidad", placeholder: "ej: 2" }],
   },
   {
     id: "rampas",
@@ -29,7 +32,7 @@ const SECTORES = [
     titulo: "Rampas y Accesibilidad Motriz",
     desc: "Rampas, nivelaciones y circulación en silla de ruedas",
     checklist: [
-      "Ubicación de rampa/s (anotar: ___)",
+      "Ubicación de rampa/s",
       "Pendiente adecuada (≤ 8%)",
       "Ancho mínimo ≥ 90 cm",
       "Pasamanos presente en ambos lados",
@@ -38,6 +41,7 @@ const SECTORES = [
       "Espacio de maniobra al inicio y fin (≥ 150 cm)",
       "Sin obstáculos en la rampa",
     ],
+    campos: [{ idx: 0, label: "Ubicación", placeholder: "ej: sector norte" }],
   },
   {
     id: "escaleras",
@@ -47,7 +51,7 @@ const SECTORES = [
     titulo: "Escaleras",
     desc: "Escaleras internas y externas del edificio",
     checklist: [
-      "Cantidad de escaleras (anotar: ___)",
+      "Cantidad de escaleras",
       "Pasamanos en ambos lados",
       "Pasamanos continuo (sin interrupciones)",
       "Primer y último escalón diferenciado (color/textura)",
@@ -56,6 +60,7 @@ const SECTORES = [
       "Señalética de piso y cartelería visible",
       "Contrahuella cerrada (sin huecos)",
     ],
+    campos: [{ idx: 0, label: "Cantidad", placeholder: "ej: 3" }],
   },
   {
     id: "banios",
@@ -65,7 +70,7 @@ const SECTORES = [
     titulo: "Baños",
     desc: "Sanitarios accesibles e inclusivos",
     checklist: [
-      "Cantidad y ubicación (anotar: ___)",
+      "Cantidad de baños",
       "Baño accesible / adaptado disponible",
       "Señalética exterior clara e inclusiva",
       "Puerta con ancho ≥ 80 cm",
@@ -74,6 +79,9 @@ const SECTORES = [
       "Inodoro a altura entre 45 y 50 cm",
       "Lavabo con espacio libre inferior (silla de ruedas)",
       "Estado general limpio y funcional",
+    ],
+    campos: [
+      { idx: 0, label: "Cantidad", placeholder: "ej: 4" },
     ],
   },
   {
@@ -90,9 +98,10 @@ const SECTORES = [
       "Iluminación suficiente interior",
       "Espacio entre bancos para circulación ≥ 90 cm",
       "Visibilidad del pizarrón desde todos los ángulos",
-      "Capacidad aproximada (anotar: ___ personas)",
+      "Capacidad aproximada (personas)",
       "Ventilación adecuada",
     ],
+    campos: [{ idx: 6, label: "Capacidad", placeholder: "ej: 30" }],
   },
   {
     id: "circulacion",
@@ -110,6 +119,7 @@ const SECTORES = [
       "Iluminación uniforme en todo el recorrido",
       "Patio interno accesible (sin escalones)",
     ],
+    campos: [],
   },
   {
     id: "senaletica",
@@ -127,6 +137,7 @@ const SECTORES = [
       "Indicadores de recorrido de emergencia",
       "Información en lenguaje sencillo",
     ],
+    campos: [],
   },
   {
     id: "barreras",
@@ -135,6 +146,7 @@ const SECTORES = [
     bg: "#FEECEC",
     titulo: "Barreras e Incidencias",
     desc: "Obstáculos físicos, comunicacionales y actitudinales",
+    severidad: true,
     checklist: [
       "Obstáculos en pasillos o accesos",
       "Señalética dañada, ausente o ilegible",
@@ -145,6 +157,7 @@ const SECTORES = [
       "Barreras actitudinales observadas",
       "Otros obstáculos (describir en notas)",
     ],
+    campos: [],
   },
 ];
 
@@ -184,6 +197,38 @@ function Relevamiento() {
   const [fotosNotas, setFotosNotas] = useState({});
   const [expandedSector, setExpandedSector] = useState(null);
   const [altoContraste, setAltoContraste] = useState(false);
+  // Campos numéricos / texto libre por ítem
+  const [camposValores, setCamposValores] = useState({});
+  // Severidad de barreras: { "barreras-0": "critica" | "moderada" | "leve" }
+  const [severidades, setSeveridades] = useState({});
+  // Cronómetro
+  const [cronActivo, setCronActivo] = useState(false);
+  const [cronSegundos, setCronSegundos] = useState(0);
+  const cronRef = useRef(null);
+
+  useEffect(() => {
+    if (cronActivo) {
+      cronRef.current = setInterval(() => setCronSegundos(s => s + 1), 1000);
+    } else {
+      clearInterval(cronRef.current);
+    }
+    return () => clearInterval(cronRef.current);
+  }, [cronActivo]);
+
+  const formatCron = (seg) => {
+    const h = Math.floor(seg / 3600);
+    const m = Math.floor((seg % 3600) / 60);
+    const s = seg % 60;
+    return h > 0
+      ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`
+      : `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  };
+
+  const setCampo = (sectorId, idx, val) =>
+    setCamposValores(prev => ({ ...prev, [`${sectorId}-${idx}`]: val }));
+
+  const setSeveridad = (sectorId, idx, val) =>
+    setSeveridades(prev => ({ ...prev, [`${sectorId}-${idx}`]: val }));
 
   const toggle = (sectorId, idx) => {
     const key = `${sectorId}-${idx}`;
@@ -203,8 +248,87 @@ function Relevamiento() {
 
   const fotosCount = Object.keys(fotosPreviews).length;
 
-  const bgApp = altoContraste ? "#000" : "#F4F6F9";
+  // ── EXPORTAR RELEVAMIENTO ────────────────────────────────────────────────
+  const exportarResumen = () => {
+    const linea = (txt) => txt + "\n";
+    const sep = "─".repeat(40) + "\n";
 
+    let txt = "";
+    txt += linea("╔══════════════════════════════════════╗");
+    txt += linea("  RELEVAMIENTO DE CAMPO — CFP N.º 7");
+    txt += linea("  Sprint 1 · UX/UI · Semana 2");
+    txt += linea("╚══════════════════════════════════════╝");
+    txt += linea("");
+    if (fecha)       txt += linea(`📅 Fecha:        ${fecha}`);
+    if (responsable) txt += linea(`👤 Equipo:       ${responsable}`);
+    txt += linea(`⏱ Duración:     ${formatCron(cronSegundos)}`);
+    txt += linea(`📊 Progreso:     ${progreso}% (${totalChecked}/${totalItems} ítems)`);
+    txt += linea(`📷 Fotos:        ${fotosCount}/${FOTOS.length}`);
+    txt += linea("");
+
+    SECTORES.forEach(s => {
+      const done = completedCount(s.id, s.checklist.length);
+      txt += sep;
+      txt += linea(`${s.emoji} ${s.titulo.toUpperCase()} — ${done}/${s.checklist.length}`);
+      s.checklist.forEach((item, i) => {
+        const marcado = checks[`${s.id}-${i}`];
+        const campo = camposValores[`${s.id}-${i}`];
+        const sev = s.severidad && severidades[`${s.id}-${i}`];
+        const sevLabel = sev === "critica" ? " 🔴 CRÍTICA" : sev === "moderada" ? " 🟡 MODERADA" : sev === "leve" ? " 🟢 LEVE" : "";
+        const campoLabel = campo ? ` → ${campo}` : "";
+        txt += linea(`  ${marcado ? "✅" : "⬜"} ${item}${campoLabel}${sevLabel}`);
+      });
+      if (notas[s.id]) {
+        txt += linea(`  📝 Nota: ${notas[s.id]}`);
+      }
+      txt += linea("");
+    });
+
+    txt += sep;
+    txt += linea("📷 FOTOS TOMADAS");
+    FOTOS.forEach((f, i) => {
+      const tiene = !!fotosPreviews[i];
+      txt += linea(`  ${tiene ? "✅" : "⬜"} ${f.icon} ${f.label}${fotosNotas[i] ? " — " + fotosNotas[i] : ""}`);
+    });
+    txt += linea("");
+
+    if (general) {
+      txt += sep;
+      txt += linea("📝 OBSERVACIONES GENERALES");
+      txt += linea(general);
+      txt += linea("");
+    }
+
+    txt += sep;
+    txt += linea("🚀 PRÓXIMOS PASOS");
+    PROXIMOS_PASOS.forEach(p => {
+      txt += linea(`  → [${p.rol}] ${p.texto}`);
+    });
+    txt += linea("");
+    txt += linea(`Generado: ${new Date().toLocaleString("es-AR")}`);
+
+    // Copiar al portapapeles
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => {
+        alert("✅ Resumen copiado al portapapeles.\nPegalo en WhatsApp, Notion o Google Sheets.");
+      }).catch(() => fallbackCopy(txt));
+    } else {
+      fallbackCopy(txt);
+    }
+  };
+
+  const fallbackCopy = (txt) => {
+    const el = document.createElement("textarea");
+    el.value = txt;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    alert("✅ Resumen copiado al portapapeles.\nPegalo en WhatsApp, Notion o Google Sheets.");
+  };
+
+  const bgApp = altoContraste ? "#000" : "#F4F6F9";
+  const textMain = altoContraste ? "#fff" : "#111";
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: bgApp, minHeight: "100vh", transition: "background 0.3s" }}>
@@ -260,6 +384,49 @@ function Relevamiento() {
           <div style={{ marginTop: 8, fontSize: 11, opacity: 0.75, display: "flex", gap: 16 }}>
             <span>📷 {fotosCount} foto{fotosCount !== 1 ? "s" : ""}</span>
             <span>📝 {Object.keys(notas).filter(k => notas[k]).length} sector{Object.keys(notas).filter(k => notas[k]).length !== 1 ? "es" : ""} con notas</span>
+          </div>
+        </div>
+
+        {/* Cronómetro de visita */}
+        <div style={{
+          marginTop: 10,
+          display: "flex", alignItems: "center", gap: 10,
+          background: "rgba(255,255,255,0.12)",
+          borderRadius: 10, padding: "8px 14px",
+        }}>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>⏱ Tiempo de visita:</span>
+          <span style={{
+            fontSize: 18, fontWeight: 800, letterSpacing: 1,
+            fontVariantNumeric: "tabular-nums",
+            color: cronSegundos > 3600 ? "#FFB347" : "#fff",
+          }}>
+            {formatCron(cronSegundos)}
+          </span>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+            <button
+              onClick={() => setCronActivo(v => !v)}
+              style={{
+                background: cronActivo ? "rgba(255,255,255,0.25)" : "#5AFFB4",
+                color: cronActivo ? "#fff" : "#000",
+                border: "none", borderRadius: 8,
+                padding: "5px 12px", fontSize: 12, fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {cronActivo ? "⏸ Pausar" : cronSegundos > 0 ? "▶ Continuar" : "▶ Iniciar"}
+            </button>
+            {cronSegundos > 0 && !cronActivo && (
+              <button
+                onClick={() => { setCronSegundos(0); setCronActivo(false); }}
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  color: "#fff", border: "none", borderRadius: 8,
+                  padding: "5px 10px", fontSize: 12, cursor: "pointer",
+                }}
+              >
+                ↺
+              </button>
+            )}
           </div>
         </div>
 
@@ -390,35 +557,88 @@ function Relevamiento() {
                         {sector.checklist.map((item, i) => {
                           const key = `${sector.id}-${i}`;
                           const checked = !!checks[key];
+                          const campoDef = (sector.campos || []).find(c => c.idx === i);
+                          const sev = severidades[key];
                           return (
-                            <button
-                              key={i}
-                              onClick={() => toggle(sector.id, i)}
-                              style={{
-                                width: "100%", background: "transparent", border: "none",
-                                cursor: "pointer", display: "flex", alignItems: "flex-start",
-                                gap: 10, padding: "8px 0", textAlign: "left",
-                                borderBottom: `1px solid ${altoContraste ? "#222" : "#F4F6F9"}`,
-                              }}
-                            >
-                              <div style={{
-                                width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
-                                background: checked ? sector.color : "transparent",
-                                border: `2px solid ${checked ? sector.color : (altoContraste ? "#666" : "#D1D5DB")}`,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                transition: "all 0.2s",
-                              }}>
-                                {checked && <span style={{ color: "#fff", fontSize: 13, lineHeight: 1 }}>✓</span>}
-                              </div>
-                              <span style={{
-                                fontSize: 13, lineHeight: 1.5,
-                                color: altoContraste ? (checked ? "#fff" : "#aaa") : (checked ? "#374151" : "#6B7280"),
-                                textDecoration: checked ? "line-through" : "none",
-                                fontWeight: checked ? 500 : 400,
-                              }}>
-                                {item}
-                              </span>
-                            </button>
+                            <div key={i} style={{
+                              borderBottom: `1px solid ${altoContraste ? "#222" : "#F4F6F9"}`,
+                              paddingBottom: 8, marginBottom: 8,
+                            }}>
+                              <button
+                                onClick={() => toggle(sector.id, i)}
+                                style={{
+                                  width: "100%", background: "transparent", border: "none",
+                                  cursor: "pointer", display: "flex", alignItems: "flex-start",
+                                  gap: 10, padding: "4px 0", textAlign: "left",
+                                }}
+                              >
+                                <div style={{
+                                  width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
+                                  background: checked ? sector.color : "transparent",
+                                  border: `2px solid ${checked ? sector.color : (altoContraste ? "#666" : "#D1D5DB")}`,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  transition: "all 0.2s",
+                                }}>
+                                  {checked && <span style={{ color: "#fff", fontSize: 13, lineHeight: 1 }}>✓</span>}
+                                </div>
+                                <span style={{
+                                  fontSize: 13, lineHeight: 1.5,
+                                  color: altoContraste ? (checked ? "#fff" : "#aaa") : (checked ? "#374151" : "#6B7280"),
+                                  textDecoration: checked ? "line-through" : "none",
+                                  fontWeight: checked ? 500 : 400,
+                                }}>
+                                  {item}
+                                </span>
+                              </button>
+
+                              {/* Campo numérico/texto inline */}
+                              {campoDef && (
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginLeft: 32 }}>
+                                  <span style={{ fontSize: 11, color: "#6B7280" }}>{campoDef.label}:</span>
+                                  <input
+                                    value={camposValores[key] || ""}
+                                    onChange={e => setCampo(sector.id, i, e.target.value)}
+                                    placeholder={campoDef.placeholder}
+                                    style={{
+                                      border: `1px solid ${altoContraste ? "#555" : "#D1D5DB"}`,
+                                      borderRadius: 6, padding: "4px 8px",
+                                      fontSize: 13, fontWeight: 600,
+                                      background: altoContraste ? "#1a1a1a" : "#F9FAFB",
+                                      color: altoContraste ? "#fff" : "#111",
+                                      outline: "none", width: 120,
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Severidad (solo sector barreras, cuando está marcado) */}
+                              {sector.severidad && checked && (
+                                <div style={{ display: "flex", gap: 6, marginTop: 6, marginLeft: 32, flexWrap: "wrap" }}>
+                                  {[
+                                    { val: "critica",  label: "🔴 Crítica",  bg: "#FEECEC", col: "#D93535" },
+                                    { val: "moderada", label: "🟡 Moderada", bg: "#FFF9E6", col: "#D4A10A" },
+                                    { val: "leve",     label: "🟢 Leve",     bg: "#E6F9F4", col: "#13B385" },
+                                  ].map(op => (
+                                    <button
+                                      key={op.val}
+                                      onClick={() => setSeveridad(sector.id, i, sev === op.val ? null : op.val)}
+                                      style={{
+                                        border: `1.5px solid ${sev === op.val ? op.col : (altoContraste ? "#444" : "#E5E7EB")}`,
+                                        borderRadius: 8,
+                                        padding: "3px 10px",
+                                        fontSize: 11, fontWeight: 700,
+                                        background: sev === op.val ? op.bg : "transparent",
+                                        color: sev === op.val ? op.col : (altoContraste ? "#aaa" : "#6B7280"),
+                                        cursor: "pointer",
+                                        transition: "all 0.15s",
+                                      }}
+                                    >
+                                      {op.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -728,6 +948,31 @@ function Relevamiento() {
           </div>
         )}
       </div>
+
+      {/* BOTÓN FLOTANTE EXPORTAR */}
+      <button
+        onClick={exportarResumen}
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 20,
+          background: "linear-gradient(135deg, #1A6FE8, #13B385)",
+          color: "#fff",
+          border: "none",
+          borderRadius: 16,
+          padding: "14px 20px",
+          fontSize: 14,
+          fontWeight: 700,
+          cursor: "pointer",
+          boxShadow: "0 4px 20px rgba(26,111,232,0.4)",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          zIndex: 100,
+        }}
+      >
+        📋 Exportar resumen
+      </button>
     </div>
   );
 }
