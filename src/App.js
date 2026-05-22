@@ -112,7 +112,10 @@ function Relevamiento() {
   const [fecha, setFecha] = useState("");
   const [responsable, setResponsable] = useState("");
   const [activeTab, setActiveTab] = useState("sectores");
+const [activeTab, setActiveTab] = useState("sectores");
+const [fotosPreviews, setFotosPreviews] = useState({});
 
+const toggle = (sectorId, idx) => {
   const toggle = (sectorId, idx) => {
     const key = `${sectorId}-${idx}`;
     setChecks(prev => ({ ...prev, [key]: !prev[key] }));
@@ -350,12 +353,32 @@ function Relevamiento() {
                   boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
                   borderTop: `3px solid ${f.color}`,
                 }}>
-                  <div style={{
-                    height: 130, background: "#F4F6F9",
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <div style={{ fontSize: 30, marginBottom: 6 }}>📷</div>
-                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>Agregar foto</div>
+                  <label style={{
+  height: 130, background: "#F4F6F9",
+  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+  cursor: "pointer",
+}}>
+  {fotosPreviews[i]
+    ? <img src={fotosPreviews[i]} style={{ height: 130, width: "100%", objectFit: "cover" }} />
+    : <>
+        <div style={{ fontSize: 30, marginBottom: 6 }}>📷</div>
+        <div style={{ fontSize: 11, color: "#9CA3AF" }}>Tocar para agregar foto</div>
+      </>
+  }
+  <input
+    type="file"
+    accept="image/*"
+    capture="environment"
+    style={{ display: "none" }}
+    onChange={e => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setFotosPreviews(prev => ({ ...prev, [i]: url }));
+      }
+    }}
+  />
+</label>
                   </div>
                   <div style={{ padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#111", marginBottom: 6 }}>{f.label}</div>
