@@ -459,4 +459,5 @@ const toggle = (sectorId, idx) => {
       </div>
     </div>
   );
-}export default Relevamiento;
+}
+export default Relevamiento;
