@@ -112,7 +112,7 @@ function Relevamiento() {
   const [fecha, setFecha] = useState("");
   const [responsable, setResponsable] = useState("");
   const [activeTab, setActiveTab] = useState("sectores");
-  
+
 const [fotosPreviews, setFotosPreviews] = useState({});
 
 const toggle = (sectorId, idx) => {
@@ -379,7 +379,6 @@ const toggle = (sectorId, idx) => {
     }}
   />
 </label>
-                  </div>
                   <div style={{ padding: "10px 12px" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#111", marginBottom: 6 }}>{f.label}</div>
                     <textarea
