@@ -204,7 +204,7 @@ function Relevamiento() {
   const fotosCount = Object.keys(fotosPreviews).length;
 
   const bgApp = altoContraste ? "#000" : "#F4F6F9";
-  const textMain = altoContraste ? "#fff" : "#111";
+
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: bgApp, minHeight: "100vh", transition: "background 0.3s" }}>
