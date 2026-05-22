@@ -112,7 +112,7 @@ function Relevamiento() {
   const [fecha, setFecha] = useState("");
   const [responsable, setResponsable] = useState("");
   const [activeTab, setActiveTab] = useState("sectores");
-const [activeTab, setActiveTab] = useState("sectores");
+  
 const [fotosPreviews, setFotosPreviews] = useState({});
 
 const toggle = (sectorId, idx) => {
