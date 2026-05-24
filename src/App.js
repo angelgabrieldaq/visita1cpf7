@@ -1,4 +1,4 @@
-﻿import Relevamiento from './Relevamiento';
+import Relevamiento from './Relevamiento';
 
 function App() {
   return <Relevamiento />;
